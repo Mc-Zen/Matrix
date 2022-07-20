@@ -1,0 +1,424 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="description" content="A tiny C++20 general-purpose library for dense, fixed-size matrices (and vectors) with no dependencies.">
+    <meta name="author" content="Mc-Zen">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="css/prism.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <title>C++ Matrix Library</title>
+</head>
+<body>
+
+    <script src="js/prism.js"></script>
+
+    <main>
+
+        <div class="ghub"><a href="">GitHub</a></div>
+        <h1>
+            Matrix library for C++20
+        </h1>
+        <p>
+            A tiny C++20 general-purpose library for dense, fixed-size matrices (and vectors) with no dependencies.
+        </p>
+        <h2>Overview</h2>
+        <p>
+            Features:
+            <ul>
+                <li>intuitive syntax</li>
+                <li>almost no overhead</li>
+                <li>header-only</li>
+                <li>fully constexpr</li>
+                <li>STL-oriented</li>
+                <li>static memory (e.g. suited for audio development)</li>
+                <li>simple software design in compaison to some other matrix libs, e.g. no CRTP, virtual functions, ...</li>
+                <li>fully tested. Tests can be run with <a href="https://github.com/catchorg/Catch2">Catch2</a>.</li>
+            </ul>
+        </p>
+
+        <p>
+            Limitations:
+            <ul>
+                <li>only C++20 (and up) because of heavy use of concepts and constexpr</li>
+                <li>this is not a linear algebra library - at the moment the library provides no linear algebra algorithms such as decomposition and solvers</li>
+            </ul>
+        </p>
+
+
+
+        <p>
+            Sample Code (some possible operations)
+
+            <code class="language-cpp">
+                <pre>
+Matrix&lt;float, 3, 3&gt; mat{ 1,2,3,4,5,6,7,8,9 };
+auto mat2 = mat * 2.f - mat;
+
+// Take sqrt of all entries
+mat.apply([](float&amp; f) {f = std::sqrtf(f); });
+
+// Iterate over all entries (row first)
+for (const auto&amp; el : mat) {}
+// Iterate over one row
+for (const auto&amp; el : mat.row(1)) {}
+// Copy one row into another
+mat.row(1) = mat.row(0);
+// Copy matrix block into other matrix
+mat2.block(1, 1, 2, 2) = mat.block(0, 0, 2, 2);
+
+Vector3f vec = mat.col(0);
+vec.x() += 5;
+float norm = vec.norm();
+
+RowVector3f row_vec(7);
+// Auto cast 1x1 matrix to scalar
+float scalar = row_vec * vec; 
+
+// Pretty print matrices
+cout << mat << mat2 << vec;</pre></code>
+        </p>
+
+        <h2>Documentation</h2>
+        <p>
+            <h3>Documentation overview</h3>
+
+            <ul>
+                <li><a href="#classes">Classes</a></li>
+                <li><a href="#typedefs">Type Definitions</a></li>
+                <li><a href="#predefined-matrices">Predefined Matrices</a></li>
+                <li><a href="#exceptions">Exceptions (optional)</a></li>
+                <li>
+                    <a href="#matrix:matrix">Matrix Class</a>
+                    <ul>
+                        <li><a href="#matrix:template-params">Template Parameters</a></li>
+                        <li><a href="#matrix:types">Types</a></li>
+                        <li><a href="#matrix:constructors">Constructors</a></li>
+                        <li><a href="#matrix:matrix-access">Matrix Access</a></li>
+                        <li><a href="#matrix:arithmetic">Arithmetic</a></li>
+                        <li><a href="#matrix:matrix-op">Other Matrix Operations</a></li>
+                        <li><a href="#matrix:iterators">Iterators</a></li>
+                        <li><a href="#matrix:block-access">Row/Column/Block Access</a></li>
+                        <li><a href="#matrix:vector-op">Vector-specific Operations</a></li>
+                        <li><a href="#matrix:factory">Factory Functions</a></li>
+
+                    </ul>
+                </li>
+                <li>
+                    <a href="#matrix-view:matrix-view">Matrix_view Class</a>
+                    <ul>
+                        <li><a href="#matrix-view:types">Types</a></li>
+                        <li><a href="#matrix-view:constructors">Constructors</a></li>
+                        <li><a href="#matrix-view:iterators">Iterators</a></li>
+                        <li><a href="#matrix-view:member">Member Functions</a></li>
+
+                    </ul>
+                </li>
+                <li><a href="#global-functions">Global Functions</a></li>
+            </ul>
+        </p>
+
+        This library has been tested with Visual C++, Clang and GCC.
+
+        <h3 id="classes">Classes</h3>
+        <div class="tab">
+            <div>Class</div><div>Definition</div>
+            <div><code class="language-cpp">class Matrix&lt;T,m,n&gt;</code> </div><div>Main class for <code class="language-cpp">m</code>×<code class="language-cpp">n</code>matrices of type <code class="language-cpp">T</code>.</div>
+            <div><code class="language-cpp">class Matrix_view&lt;T&gt;</code> </div><div>Matrix view class for viewing or modifying parts of a matrix like a block, row or column.</div>
+            <div><code class="language-cpp">class Matrix_iterator&lt;T&gt;</code> </div><div>Random access iterator (in fact even contiguous iterator) for iterating through a contiguous array in memory (matrix data).</div>
+            <div><code class="language-cpp">class Matrix_stride_iterator&lt;T&gt;</code> </div><div>Random access iterator for iterating i.e. vertically through a contiguous array in memory.  </div>
+            <div><code class="language-cpp">class Matrix_block_iterator&lt;T&gt;</code> </div><div>Bi-directional iterator for iterating through a matrix block within a bigger matrix.</div>
+        </div>
+
+        <h3 id="typedefs">Type Definitions</h3>
+        <div class="tab">
+            <div>Type</div><div>Definition</div>
+
+            <div><code class="language-cpp">using Index = size_t</code></div><div>Index and size type for access in matrices.</div>
+            <div><code class="language-cpp">using Vector&lt;T,n&gt; = Matrix&lt;T,1,n&gt;</code></div><div>Column vector partial specialization of <code class="language-cpp">Matrix</code>.</div>
+            <div><code class="language-cpp">using RowVector&lt;T,m&gt; = Matrix&lt;T,m,1&gt;</code></div><div>Row vector partial specialization of <code class="language-cpp">Matrix</code>.</div>
+        </div>
+
+
+        <h3 id="predefined-matrices">Predefined Matrices</h3>
+        <div class="tab">
+            <div>Member</div><div>Definition</div>
+
+
+            <div>
+                <code class="language-cpp">using Matrix2f = Matrix&lt;float, 2, 2&gt;</code><br />
+                <code class="language-cpp">using Matrix3f = Matrix&lt;float, 3, 3&gt;</code><br />
+                <code class="language-cpp">using Matrix4f = Matrix&lt;float, 4, 4&gt;</code><br />
+                <code class="language-cpp">using Vector2f = Vector&lt;float, 2&gt;</code><br />
+                <code class="language-cpp">using Vector3f = Vector&lt;float, 3&gt;</code><br />
+                <code class="language-cpp">using Vector4f = Vector&lt;float, 4&gt;</code><br />
+                <code class="language-cpp">using RowVector2f = RowVector&lt;float, 2&gt;</code><br />
+                <code class="language-cpp">using RowVector3f = RowVector&lt;float, 3&gt;</code><br />
+                <code class="language-cpp">using RowVector4f = RowVector&lt;float, 4&gt;</code><br />
+            </div>
+            <div><code class="language-cpp">float</code> matrix and vector types.</div>
+
+
+            <div>
+                <code class="language-cpp">using Matrix2d = Matrix&lt;double, 2, 2&gt;</code><br />
+                <code class="language-cpp">using Matrix3d = Matrix&lt;double, 3, 3&gt;</code><br />
+                <code class="language-cpp">using Matrix4d = Matrix&lt;double, 4, 4&gt;</code><br />
+                <code class="language-cpp">using Vector2d = Vector&lt;double, 2&gt;</code><br />
+                <code class="language-cpp">using Vector3d = Vector&lt;double, 3&gt;</code><br />
+                <code class="language-cpp">using Vector4d = Vector&lt;double, 4&gt;</code><br />
+                <code class="language-cpp">using RowVector2d = RowVector&lt;double, 2&gt;</code><br />
+                <code class="language-cpp">using RowVector3d = RowVector&lt;double, 3&gt;</code><br />
+                <code class="language-cpp">using RowVector4d = RowVector&lt;double, 4&gt;</code><br />
+            </div>
+            <div><code class="language-cpp">double</code> matrix and vector types.</div>
+
+        </div>
+
+
+        <h3 id="exceptions">Exceptions</h3>
+        <p>
+            By default, exceptions are not activated. Calls to <code class="language-cpp">Matrix::block(Index, Index, Index, Index)</code>, <code class="language-cpp">Matrix::row(Index)</code>, <code class="language-cpp">Matrix::col(Index)</code>, 
+            <code class="language-cpp">Matrix_view::operator=(const Matrix_view&)</code>, <code class="language-cpp">Matrix_view::operator=(const Matrix&)</code> and
+            <code class="language-cpp">Matrix(const Matrix_view&)</code>
+            will do an assertation when running in debug mode. Defining the macro <code class="language-cpp">MATRIX_EXCEPTIONS</code> before 
+            including this library will instead turn on exceptions for these cases.
+        </p>
+        <div class="tab">
+            <div>Class</div><div>Definition</div>
+
+            <div><code class="language-cpp">struct Matrix_view_mismatch</code> </div><div>Thrown when assignment (copy of data) from one <code class="language-cpp">Matrix_view</code> into another is attempted with different block dimensions.</div>
+            <div><code class="language-cpp">struct Matrix_block_domain_error</code> </div><div>Thrown when creation of a block is attempted that exceeds the dimensions of the matrix.</div>
+        </div>
+
+
+        <br />
+        <hr />
+        <h3 id="matrix:matrix">Matrix Class</h3>
+        <div class="classinfo">
+            <h4 id="matrix:template-params">Template Parameters</h4>
+            <div class="tab">
+                <div>Template Parameter</div><div>Definition and notes</div>
+
+                <div><code class="language-cpp">class T</code></div><div>Value type for the underlying data. <code class="language-cpp">T</code> needs to be default-constructible, copy-insertable, destructable, equality-comparable and capable of basic arithmetic. </div>
+                <div><code class="language-cpp">Index m</code></div><div>Number of rows (height of the matrix). </div>
+                <div><code class="language-cpp">Index n</code></div><div>Number of columns (width of the matrix). </div>
+            </div>
+
+            <p>
+                <code class="language-cpp">Matrix</code> satisfies the requirements for a C++ Container, ReversableContainer and ContiguousContainer with the same exceptions as <code class="language-cpp">std::array</code> that the complexity of swapping is
+                linear and the default-constructed matrix is not empty for non-zero <code class="language-cpp">m</code> and <code class="language-cpp">n</code>.
+            </p>
+
+
+            <h4 id="matrix:types">Types</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">using value_type = T</code></div><div>Value type for the underlying data. </div>
+                <div><code class="language-cpp">using size_type = size_t</code></div><div>Type used for indexing and sizes. </div>
+                <div><code class="language-cpp">using difference_type = ptrdiff_t</code></div><div>Type used for pointer differences. </div>
+                <div><code class="language-cpp">using iterator = Matrix_iterator&lt;T&gt;</code>,<br /><code class="language-cpp">using const_iterator = Matrix_iterator&lt;const T&gt;</code></div><div>Iterator through all elements of the matrix (row first).</div>
+                <div><code class="language-cpp">using reverse_iterator = std::reverse_iterator&lt;iterator&gt;</code>,<br /><code class="language-cpp">using const_reverse_iterator = std::reverse_iterator&lt;const_iterator&gt;</code></div><div>Reverse iterator.</div>
+            </div>
+
+
+
+
+            <h4 id="matrix:constructors">Constructors</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">Matrix()</code></div><div>Default-initializes data (i.e. zero for arithmetic types). </div>
+                <div><code class="language-cpp">Matrix(const T&amp; value)</code></div><div>Initializes all entries to <code class="language-cpp">value</code>. </div>
+                <div><code class="language-cpp">Matrix(const std::initializer_list&lt;T&gt; elems)</code></div><div>Initializes matrix elements from initializer list. When too many values are provided, the last ones are discarded; when too few are provided, the rest is default-initialized. </div>
+                <div><code class="language-cpp">Matrix(const std::array&lt;T, m*n&gt;&amp; elems)</code></div><div>Copies values from a <code class="language-cpp">std::array</code> with fitting length.</div>
+                <div><code class="language-cpp">Matrix(std::array&lt;T, m*n&gt;&amp;&amp; elems)</code></div><div>Constructs a matrix by moving <code class="language-cpp">std::array</code> with fitting length.</div>
+                <div><code class="language-cpp">Matrix(const Matrix_view&lt;T&gt;&amp; mat_view)</code></div><div>Constructs a matrix copying the matrix block <code class="language-cpp">mat_view</code>.</div>
+            </div>
+
+
+
+
+
+            <h4 id="matrix:matrix-access">Matrix Access</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">size_type rows() const</code></div><div> Returns number of rows.</div>
+                <div><code class="language-cpp">size_type cols() const</code></div><div> Returns number of columns.</div>
+                <div><code class="language-cpp">size_type size() const</code></div><div> Returns total number of entries (rows times columns).</div>
+                <div><code class="language-cpp">T* data()</code>,<br /><code class="language-cpp">const T* data() const</code></div><div> Get raw pointer to data.</div>
+                <div><code class="language-cpp">T&amp; operator()(size_type i, size_type j)</code>,<br /><code class="language-cpp">const T&amp; operator()(size_type i, size_type j) const</code>    </div><div> Get element at row <code class="language-cpp">i</code> and column <code class="language-cpp">j</code>.</div>
+                <div><code class="language-cpp">T&amp; at(size_type i, size_type j)</code>,<br /><code class="language-cpp">const T&amp; at(size_type i, size_type j) const</code>    </div><div> Get element at row <code class="language-cpp">i</code> and column <code class="language-cpp">j</code> (bounds checked).</div>
+                <div><code class="language-cpp">void fill(const T&amp; c)</code></div><div> Fill each entry of matrix with value <code class="language-cpp">c</code>.</div>
+                <div><code class="language-cpp">void swap(Matrix&amp; a)</code></div><div> Swap content of matrix with another matrix (of same dimensions).</div>
+            </div>
+
+
+
+
+            <h4 id="matrix:arithmetic">Arithmetic</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">template&lt;class F&gt;</code><br /><code class="language-cpp">Matrix&amp; apply(F f)</code></div><div> Apply a callable to each entry of the matrix (<code class="language-cpp">f</code> takes one argument: the entry). </div>
+                <div><code class="language-cpp">template&lt;class F&gt;</code><br /><code class="language-cpp">Matrix&amp; apply(F f, const T&amp; c)</code></div><div> Apply a callable to each entry of the matrix (<code class="language-cpp">f</code> takes two arguments: the entry and the constant <code class="language-cpp">c</code>). </div>
+                <div><code class="language-cpp">template&lt;class F&gt;</code><br /><code class="language-cpp">Matrix&amp; apply(F f, const Matrix&amp; a))</code></div><div> Apply a callable elementwise to two matrices (<code class="language-cpp">f</code> takes two arguments: one entry of each matrix). </div>
+                <div><code class="language-cpp">Matrix&amp; operator+=(const T&amp; c)</code><br /><code class="language-cpp">Matrix operator+(const T&amp; c) const</code></div><div> Adds a scalar to each element of the matrix. </div>
+                <div><code class="language-cpp">Matrix&amp; operator-=(const T&amp; c)</code><br /><code class="language-cpp">Matrix operator-(const T&amp; c) const</code></div><div> Subtracts a scalar from each element of the matrix. </div>
+                <div><code class="language-cpp">Matrix&amp; operator*=(const T&amp; c)</code><br /><code class="language-cpp">Matrix operator*(const T&amp; c) const</code></div><div> Multiplies each element of the matrix with a scalar. </div>
+                <div><code class="language-cpp">Matrix&amp; operator/=(const T&amp; c)</code><br /><code class="language-cpp">Matrix operator/(const T&amp; c) const</code></div><div> Divides each element of the matrix by a scalar. </div>
+                <div><code class="language-cpp">Matrix&amp; operator%=(const T&amp; c)</code><br /><code class="language-cpp">Matrix operator%(const T&amp; c) const</code></div><div> Takes the modulo of each element of the matrix by a scalar. </div>
+                <div><code class="language-cpp">Matrix&amp; operator+=(const Matrix&amp; a)</code><br /><code class="language-cpp">Matrix operator+(const Matrix&amp; a) const</code></div><div> Adds another matrix. </div>
+                <div><code class="language-cpp">Matrix&amp; operator-=(const Matrix&amp; a)</code><br /><code class="language-cpp">Matrix operator-(const Matrix&amp; a) const</code></div><div> Subtracts another matrix.  </div>
+            </div>
+
+
+
+
+
+            <h4 id="matrix:matrix-op">Other Matrix Operations</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">Matrix&lt;T, n, m&gt; transpose() const</code></div><div> Returns the transposed matrix. </div>
+                <div><code class="language-cpp">Matrix&lt;T, m, p&gt; operator*(const Matrix&lt;T, n, p&gt;&amp; a) const</code></div><div> Returns the matrix product of two matrices. </div>
+                <div><code class="language-cpp">template&lt;class U&gt;</code><br /><code class="language-cpp">Matrix&lt;U, m, n&gt; cast() const</code></div><div>Cast matrix to value type <code class="language-cpp">U</code>. This function returns a new matrix. The type <code class="language-cpp">U</code> needs to fulfill <code class="language-cpp">std::convertible_to&lt;T, U&gt;</code>. </div>
+            </div>
+
+
+
+            <h4 id="matrix:iterators">Iterators</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">iterator begin()</code>,<br /><code class="language-cpp">const_iterator begin() const</code></div><div> Returns an iterator to the first element. </div>
+                <div><code class="language-cpp">iterator end()</code>,<br /><code class="language-cpp">const_iterator end() const</code></div><div> Returns an iterator to the last element.  </div>
+                <div><code class="language-cpp">reverse_iterator rbegin()</code>,<br /><code class="language-cpp">const_reverse_iterator rbegin() const</code></div><div> Returns a reverse iterator to the beginning. </div>
+                <div><code class="language-cpp">reverse_iterator rend()</code>,<br /><code class="language-cpp">const_reverse_iterator rend() const</code></div><div> Returns a reverse iterator to the end.  </div>
+            </div>
+
+
+
+
+            <h4 id="matrix:block-access">Row/Column/Block Access</h4>
+            <p>
+                The programmer is responsible to ensure that a <code class="language-cpp">Matrix_view&lt;T&gt;</code> does not outlive the pointed-to matrix.
+            </p>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">Matrix_view&lt;T&gt; block(size_type row, size_type col, size_type rows, size_type cols)</code>,<br /><code class="language-cpp">Matrix_view&lt;const T&gt; block(size_type row, size_type col, size_type rows, size_type cols) const</code></div><div> Returns a <code class="language-cpp">Matrix_view&lt;T&gt;</code> referencing a rectangular block of the matrix.  </div>
+                <div><code class="language-cpp">Matrix_view&lt;T&gt; row(size_type row)</code>,<br /><code class="language-cpp">Matrix_view&lt;const T&gt; row(size_type row) const</code></div><div> Returns a <code class="language-cpp">Matrix_view&lt;T&gt;</code> referencing the specified row of the matrix.  </div>
+                <div><code class="language-cpp">Matrix_view&lt;T&gt; col(size_type col)</code>,<br /><code class="language-cpp">Matrix_view&lt;const T&gt; col(size_type col) const</code></div><div> Returns a <code class="language-cpp">Matrix_view&lt;T&gt;</code> referencing the specified column of the matrix.  </div>
+            </div>
+
+
+
+
+            <h4 id="matrix:vector-op">Vector-specific Operations</h4>
+            <p>
+                Matrices that have at least one dimension equal 1 are considered vectors. These feature some additional operations.
+            </p>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">T&amp; operator[](size_type i)</code>,<br /><code class="language-cpp">const T&amp; operator[](size_type i) const</code></div><div> Access the <code class="language-cpp">i</code>'th element of the vector. </div>
+                <div><code class="language-cpp">T&amp; x(size_type i)</code>,<br /><code class="language-cpp">const T&amp; x(size_type i) const</code></div><div>Access the first element of the vector (only for vectors with 1 to 3 elements). </div>
+                <div><code class="language-cpp">T&amp; y(size_type i)</code>,<br /><code class="language-cpp">const T&amp; y(size_type i) const</code></div><div>Access the second element of the vector (only for vectors with 2 to 3 elements). </div>
+                <div><code class="language-cpp">T&amp; z(size_type i)</code>,<br /><code class="language-cpp">const T&amp; z(size_type i) const</code></div><div>Access the third element of the vector (only for vectors with exactly 3 elements). </div>
+                <div><code class="language-cpp">T norm() const</code></div><div>Returns the euclidian length (L2-norm) of the vector. </div>
+                <div><code class="language-cpp">Matrix&amp; normalize()</code></div><div>Normalizes the vector to length 1 by dividing by its norm. </div>
+                <div><code class="language-cpp">T operator*(const Matrix&amp; vec)</code></div><div>Returns the inner (scalar) product of two vectors. Note, that this differs from the matrix product defined above in that it is only defined for vectors with equal dimensions while the latter can only be performed on Matrices two m×n and n×p. The matrix product operation for vectors is therefore only valid for one row and one column vector, respectively. </div>
+                <div><code class="language-cpp">operator T() const</code></div><div>Cast option for 1×1 matrices to the scalar value type. </div>
+            </div>
+
+
+
+            <h4 id="matrix:factory">Factory Functions</h4>
+
+            <div class="tab">
+                <div>Static Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">static Matrix zero()</code></div><div>Returns a matrix filled with zeros. </div>
+                <div><code class="language-cpp">static Matrix identity()</code></div><div>Returns an identity matrix (operation only defined for square matrices). </div>
+                <div><code class="language-cpp">static Matrix uninitialized()</code></div><div>Returns a matrix with indeterminate values (no setting to zero). </div>
+            </div>
+        </div>
+        <br />
+        <hr />
+        <h3 id="matrix-view:matrix-view">Matrix_view Class</h3>
+        <div class="classinfo">
+            <h4 id="matrix-view:types">Types</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">using value_type = T</code></div><div>Value type for the underlying data. </div>
+                <div><code class="language-cpp">using pointer = T*</code></div><div>Value type for the underlying data. </div>
+                <div><code class="language-cpp">using reference = T&</code></div><div>Value type for the underlying data. </div>
+                <div><code class="language-cpp">using size_type = size_t</code></div><div>Type used for indexing and sizes. </div>
+
+                <div><code class="language-cpp">using iterator = Matrix_block_iterator&lt;T&gt;</code>,<br /><code class="language-cpp">using const_iterator = Matrix_block_iterator&lt;const T&gt;</code></div><div>Iterator through all elements of the block (row first).</div>
+                <div><code class="language-cpp">using reverse_iterator = std::reverse_iterator&lt;iterator&gt;</code>,<br /><code class="language-cpp">using const_reverse_iterator = std::reverse_iterator&lt;const_iterator&gt;</code></div><div>Reverse iterator.</div>
+            </div>
+
+
+            <h4 id="matrix-view:constructors">Constructors</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">Matrix_view()</code></div><div>Default constructor. </div>
+                <div><code class="language-cpp">Matrix_view(T* ptr, size_type m, size_type n, size_type rows, size_type cols)</code></div><div>Initializes Matrix view with dimensions to pointed-to matrix and dimensions of block. </div>
+            </div>
+
+
+
+            <h4 id="matrix-view:iterators">Iterators</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">iterator begin()</code>,<br /><code class="language-cpp">const_iterator begin() const</code></div><div> Returns an iterator to the beginning. </div>
+                <div><code class="language-cpp">iterator end()</code>,<br /><code class="language-cpp">const_iterator end() const</code></div><div> Returns an iterator to the end.  </div>
+                <div><code class="language-cpp">reverse_iterator rbegin()</code>,<br /><code class="language-cpp">const_reverse_iterator rbegin() const</code></div><div> Returns a reverse iterator to the beginning. </div>
+                <div><code class="language-cpp">reverse_iterator rend()</code>,<br /><code class="language-cpp">const_reverse_iterator rend() const</code></div><div> Returns a reverse iterator to the end.  </div>
+            </div>
+
+
+
+
+            <h4 id="matrix-view:member">Member functions</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">size_type rows() const</code></div><div> Number of rows the block view has. </div>
+                <div><code class="language-cpp">size_type cols() const</code></div><div> Number of columns the block view has.</div>
+                <div><code class="language-cpp">Matrix_view&amp; operator=(const Matrix_view&amp; mat_view)</code></div><div>Copies the content of the matrix block that <code class="language-cpp">mat_view</code> points to the matrix block that this view points to. The block dimensions need to match.  </div>
+                <div><code class="language-cpp">template&lt;size_type m, size_type n&gt;</code><br /><code class="language-cpp">Matrix_view&amp; operator=(const Matrix&lt;T, m, n&gt;&amp; mat)</code></div><div>Copies the content of <code class="language-cpp">mat</code> into the matrix block that this view points to. Block dimensions and dimensions of <code class="language-cpp">mat</code> need to match. </div>
+            </div>
+        </div>
+        <br />
+        <hr />
+
+        <h3 id="global-functions">Global Functions</h3>
+
+        <div class="tab">
+            <div>Function</div><div>Definition</div>
+
+            <div><code class="language-cpp">template&lt;class T, Index m, Index n&gt;</code><br /><code class="language-cpp">bool operator==(const Matrix&lt;T, m, n&gt;&amp; a, const Matrix&lt;T, m, n&gt;&amp; b)</code></div><div>Returns true if the matrices are equal. </div>
+            <div><code class="language-cpp">template&lt;class T, Index m, Index n&gt;</code><br /><code class="language-cpp">bool operator!=(const Matrix&lt;T, m, n&gt;&amp; a, const Matrix&lt;T, m, n&gt;&amp; b)</code></div><div>Returns false if the matrices are equal. </div>
+            <div><code class="language-cpp">template&lt;class T, Index m, Index n&gt;</code><br /><code class="language-cpp">Matrix&lt;T, m, n&gt;&amp; operator-(const Matrix&lt;T, m, n&gt;&amp; mat)</code></div><div>Unary minus operator (has the same effect as calling <code class="language-cpp">mat*-1</code>). </div>
+            <div><code class="language-cpp">template&lt;class T, Index m, Index n&gt;</code><br /><code class="language-cpp">Matrix&lt;T, m, n&gt;&amp; operator*(const T& c, const Matrix&lt;T, m, n&gt;&amp; mat)</code></div><div>Multiplies the matrices with a scalar from the left (has the same effect as calling <code class="language-cpp">mat*c</code>). </div>
+            <div><code class="language-cpp">template&lt;class T, Index m&gt;</code><br /><code class="language-cpp">T distance(const Vector<T, m>& a, const Vector<T, m>& b)</code><br /><code class="language-cpp">template&lt;class T, Index m&gt;</code><br /><code class="language-cpp">T distance(const RowVector<T, m>& a, const RowVector<T, m>& b)</code></div><div>Returns the distance, treating both vectors as points in euclidian space (has the same effect as calling <code class="language-cpp">(a - b).norm()</code>). </div>
+            <div><code class="language-cpp">template&lt;class T, Index n&gt;</code><br /><code class="language-cpp">Matrix&lt;T, n, n&gt; diag(const T(&values)[n])</code></div><div>Returns a diagonal matrix filled with the elements in <code class="language-cpp">values</code>.  All other values are default-initialized. Template parameters can be deduced automatically</div>
+            <div><code class="language-cpp">template&lt;class T, Index n&gt;</code><br /><code class="language-cpp">Matrix&lt;T, n, n&gt; antidiag(const T(&values)[n])</code></div><div>Returns an antidiagonal matrix filled with the elements in <code class="language-cpp">values</code>.  All other values are default-initialized. Template parameters can be deduced automatically</div>
+        </div>
+
+
+
+    </main>
+</body>
+</html>
