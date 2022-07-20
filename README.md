@@ -14,6 +14,7 @@ Features:
 - intuitive syntax
 - almost no overhead
 - header-only
+- almost single-header
 - fully constexpr
 - STL-oriented
 - static memory (e.g. suited for audio development)
