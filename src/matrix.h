@@ -8,15 +8,6 @@
 #include <algorithm>
 #include <iosfwd>
 
-// remove array container?
-// pros: 1 less indirection layer
-// cons: warning with negative index? bounds checking with at
-//
-// Todo
-// -  invert (ext), det (ext). done
-// - exceptions for Matrix_view. done
-// - <=> operator? (based on std::array). no
-// - cleanup size_type/Index. done
 
 
 #define MATRIX_EXCEPTIONS
