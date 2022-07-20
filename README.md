@@ -2,7 +2,10 @@
 
 
 A tiny C++20 general-purpose library for dense, fixed-size matrices (and vectors) with no dependencies.
-It makes use of C++20s concepts to enable special features such as norm for vectors.
+It makes use of C++20s concepts to enable special features such as norm for vectors and many more.
+
+__View the full documentation at [https://mc-zen.github.io/Matrix/](https://mc-zen.github.io/Matrix/)__
+
 
 ## Overview
 
@@ -26,7 +29,7 @@ Limitations:
 ## Classes
 | Class | Definition |
 |-------|------------|
-|`Matrix<T,m,n>`   | Main class for `m`×`n` matrices of type `T` |
+|`Matrix<T,m,n>`   | Main class for `m`Ã—`n` matrices of type `T` |
 |`Matrix_view<T>`   | Matrix view class for viewing or modifying parts of a matrix like a block, row or column. |
 |`Matrix_iterator<T>`   | Random access iterator for iterating through a contiguous array in memory (matrix data). |
 |`Matrix_stride_iterator<T>`   | Random access iterator for iterating i.e. vertically through a contiguous array in memory.   |
