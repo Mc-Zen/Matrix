@@ -19,7 +19,7 @@ Features:
 - STL-oriented
 - static memory (e.g. suited for audio development)
 - simple software design in compaison to some other matrix libs, e.g. no CRTP, virtual functions, ...
-- fully tested. Tests can be run with Catch2.
+- fully tested. Tests can be run with [Catch2](https://github.com/catchorg/Catch2).
 
 Limitations:
 
