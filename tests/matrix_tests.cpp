@@ -2,7 +2,6 @@
 #include <catch2/catch_approx.hpp>
 
 #include "../src/matrix.h"
-#include "../src/solver.h"
 
 #include <iostream>
 
@@ -10,6 +9,15 @@
 using Catch::Approx;
 using namespace algebra;
 
+
+template<std::random_access_iterator It>
+void checkRandomAccessIterator(It it) {
+}
+
+
+template<std::bidirectional_iterator It>
+void checkBirectionalIterator(It it) {
+}
 
 template<class T, Index m, Index n>
 void testSizeImpl() {
@@ -20,6 +28,13 @@ void testSizeImpl() {
 }
 
 
+TEST_CASE("Random Acess iterator concept") {
+	Matrix<float, 4, 3> mat;
+	checkRandomAccessIterator(mat.begin());
+	checkRandomAccessIterator(mat.col_begin(0));
+	checkBirectionalIterator(mat.block(1, 1, 1, 1).begin());
+}
+
 
 TEST_CASE("Size") {
 	testSizeImpl<float, 3, 4>();
@@ -27,7 +42,7 @@ TEST_CASE("Size") {
 	testSizeImpl<float, 3, 21>();
 	testSizeImpl<float, 1, 1>();
 	testSizeImpl<float, 2, 1>();
-	//Matrix<float, 4, 5> a
+	// Matrix<float, 4, 5> a
 }
 
 TEST_CASE("EmptyConstructor") {
@@ -78,7 +93,7 @@ TEST_CASE("OneValueConstructor") {
 }
 
 TEST_CASE("InitializerListConstructor1") {
-	Matrix<float, 4, 3> mat{ 0,1,2,3,4,5,6,7,8,9,10,11 };
+	Matrix<float, 4, 3> mat{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	float count = 0;
 	for (const auto& el : mat) {
 		REQUIRE(el == count++);
@@ -86,7 +101,7 @@ TEST_CASE("InitializerListConstructor1") {
 }
 
 TEST_CASE("InitializerListConstructor2") {
-	Matrix<float, 4, 3> mat = { 0,1,2,3,4,5,6,7,8,9,10,11 };
+	Matrix<float, 4, 3> mat = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	float count = 0;
 	for (const auto& el : mat) {
 		REQUIRE(el == count++);
@@ -94,7 +109,7 @@ TEST_CASE("InitializerListConstructor2") {
 }
 
 TEST_CASE("InitializerListConstructorTooManyValues") {
-	Matrix<float, 4, 3> mat = { 0,1,2,3,4,5,6,7,8,9,10,11, 12, 13 };
+	Matrix<float, 4, 3> mat = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 	float count = 0;
 	for (const auto& el : mat) {
 		REQUIRE(el == count++);
@@ -102,7 +117,7 @@ TEST_CASE("InitializerListConstructorTooManyValues") {
 }
 
 TEST_CASE("InitializerListConstructorTooFewValues") {
-	Matrix<float, 4, 3> mat = { 0,1,2,3,4,5 };
+	Matrix<float, 4, 3> mat = { 0, 1, 2, 3, 4, 5 };
 	float count = 0;
 	for (const auto& el : mat) {
 		REQUIRE(el == (count < 6 ? count++ : 0.f));
@@ -110,7 +125,7 @@ TEST_CASE("InitializerListConstructorTooFewValues") {
 }
 
 TEST_CASE("ArrayCopyConstructor") {
-	std::array<float, 12> arr{ 0,1,2,3,4,5,6,7,8,9,10,11 };
+	std::array<float, 12> arr{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	Matrix<float, 4, 3> mat{ arr };
 	float count = 0;
 	for (const auto& el : mat) {
@@ -119,7 +134,7 @@ TEST_CASE("ArrayCopyConstructor") {
 }
 
 TEST_CASE("ArrayMoveConstructor") {
-	std::array<float, 12> arr{ 0,1,2,3,4,5,6,7,8,9,10,11 };
+	std::array<float, 12> arr{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	Matrix<float, 4, 3> mat = std::move(arr);
 	float count = 0;
 	for (const auto& el : mat) {
@@ -129,14 +144,16 @@ TEST_CASE("ArrayMoveConstructor") {
 
 TEST_CASE("MatrixViewConstructor") {
 	Matrix<float, 4, 3> mat(4.f);
-	Matrix<float, 3, 2> mat2{ mat.block(0,0,3,2) };
+	Matrix<float, 3, 2> mat2{ mat.block(0, 0, 3, 2) };
 	Vector<float, 4> vec{ mat.col(1) };
 
-	for (const auto& el : mat2) REQUIRE(el == 4.f);
-	for (const auto& el : vec) REQUIRE(el == 4.f);
+	for (const auto& el : mat2)
+		REQUIRE(el == 4.f);
+	for (const auto& el : vec)
+		REQUIRE(el == 4.f);
 	bool exceptionHappened{ false };
 	try {
-		Vector<float, 3> vec{ mat.col(1) };
+		Vector<float, 3> vec1{ mat.col(1) };
 	}
 	catch (std::exception&) {
 		exceptionHappened = true;
@@ -146,8 +163,8 @@ TEST_CASE("MatrixViewConstructor") {
 
 TEST_CASE("UninitializedConstructor") {
 	auto mat = Matrix<float, 5, 6>::unspecified();
-	//std::cout << mat;
-	for (const auto& c : mat) REQUIRE((c == 0.f) == false);
+	for (const auto& c : mat)
+		REQUIRE((c == 0.f) == false);
 }
 
 TEST_CASE("IdentityMatrixFactory") {
@@ -160,19 +177,20 @@ TEST_CASE("IdentityMatrixFactory") {
 
 TEST_CASE("ZeroMatrixFactory") {
 	auto mat = Matrix<float, 7, 9>::zero();
-	for (const auto& c : mat) REQUIRE(c == 0.f);
+	for (const auto& c : mat)
+		REQUIRE(c == 0.f);
 }
 
 TEST_CASE("DiagMatrixFactory") {
-	auto mat = diag({ 9.,10.,11. });
+	auto mat = diag({ 9., 10., 11. });
 	double num = 9.;
 	for (Index i = 0; i < mat.rows(); i++)
 		for (Index j = 0; j < mat.rows(); j++)
-			REQUIRE( mat(i, j) == (i == j ? num++ : 0.));
+			REQUIRE(mat(i, j) == (i == j ? num++ : 0.));
 }
 
 TEST_CASE("AntiDiagMatrixFactory") {
-	auto mat = antidiag({ 9.,10.,11. });
+	auto mat = antidiag({ 9., 10., 11. });
 	double num = 9.;
 	for (Index i = 0; i < mat.rows(); i++)
 		for (Index j = 0; j < mat.rows(); j++)
@@ -180,9 +198,8 @@ TEST_CASE("AntiDiagMatrixFactory") {
 }
 
 TEST_CASE("ParenthesesAccessOperator") {
-	std::array<float, 12> arr{ 0,1,2,3,4,5,6,7,8,9,10,11 };
-	Matrix<float, 4, 3> mat{ 0,1,2,3,4,5,6,7,8,9,10,11 };
-	float count = 0;
+	std::array<float, 12> arr{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+	Matrix<float, 4, 3> mat{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	auto it = mat.begin();
 	for (Index i = 0; i < 4; i++) {
 		for (Index j = 0; j < 3; j++) {
@@ -192,9 +209,8 @@ TEST_CASE("ParenthesesAccessOperator") {
 }
 
 TEST_CASE("AtAccessOperator") {
-	std::array<float, 12> arr{ 0,1,2,3,4,5,6,7,8,9,10,11 };
-	Matrix<float, 4, 3> mat{ 0,1,2,3,4,5,6,7,8,9,10,11 };
-	float count = 0;
+	std::array<float, 12> arr{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+	Matrix<float, 4, 3> mat{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	auto it = mat.begin();
 	for (Index i = 0; i < 4; i++) {
 		for (Index j = 0; j < 3; j++) {
@@ -216,8 +232,7 @@ TEST_CASE("AtAccessOperatorBoundsException") {
 }
 
 TEST_CASE("ConstIterator") {
-	Matrix<float, 4, 3> mat = { 0,1,2,3,4,5,6,7,8,9,10,11 };
-	float count = 0;
+	Matrix<float, 4, 3> mat = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	for (auto& a : mat) {
 		a = -1;
 	}
@@ -227,7 +242,7 @@ TEST_CASE("ConstIterator") {
 }
 
 TEST_CASE("Iterator") {
-	Matrix<float, 4, 3> mat = { 0,1,2,3,4,5,6,7,8,9,10,11 };
+	Matrix<float, 4, 3> mat = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	for (auto& a : mat) {
 		a++;
 	}
@@ -238,7 +253,7 @@ TEST_CASE("Iterator") {
 }
 
 TEST_CASE("ReverseIterator") {
-	Matrix<float, 4, 3> mat = { 0,1,2,3,4,5,6,7,8,9,10,11 };
+	Matrix<float, 4, 3> mat = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	for (auto it = mat.rbegin(); it != mat.rend(); ++it) {
 		(*it)++;
 	}
@@ -250,9 +265,9 @@ TEST_CASE("ReverseIterator") {
 
 TEST_CASE("ColIterator") {
 	Matrix<float, 3, 4> mat{
-		0,3,6,9,
-		1,4,7,10,
-		2,5,8,11
+		0, 3, 6, 9,
+		1, 4, 7, 10,
+		2, 5, 8, 11
 	};
 	float count = 0;
 	for (Index col = 0; col < mat.cols(); col++) {
@@ -264,9 +279,9 @@ TEST_CASE("ColIterator") {
 
 TEST_CASE("RowIterator") {
 	Matrix<float, 3, 4> mat{
-		0,1,2,3,
-		4,5,6,7,
-		8,9,10,11
+		0, 1, 2, 3,
+		4, 5, 6, 7,
+		8, 9, 10, 11
 	};
 	float count = 0;
 	for (Index row = 0; row < mat.rows(); row++) {
@@ -280,20 +295,25 @@ TEST_CASE("Arithmetic") {
 	Matrix<float, 3, 4> mat1(2);
 	Matrix<float, 3, 4> mat2(-7);
 	auto mat3 = mat1 + mat2;
-	for (const auto& el : mat3) REQUIRE(-5.f == el);
+	for (const auto& el : mat3)
+		REQUIRE(-5.f == el);
 	mat3 = mat1 * 2.f - mat2;
-	for (const auto& el : mat3) REQUIRE(11.f == el);
+	for (const auto& el : mat3)
+		REQUIRE(11.f == el);
 	mat3 = -mat1;
-	for (const auto& el : mat3) REQUIRE(-2.f == el);
+	for (const auto& el : mat3)
+		REQUIRE(-2.f == el);
 	Matrix<int, 3, 4> mat4(8);
 	auto mat5 = mat4 / 2;
-	for (const auto& el : mat5) REQUIRE(4 == el);
+	for (const auto& el : mat5)
+		REQUIRE(4 == el);
 }
 
 TEST_CASE("Transposition") {
 	Matrix<float, 3, 4> mat;
 	float index = 0;
-	for (auto& c : mat) c = index++;
+	for (auto& c : mat)
+		c = index++;
 	auto transposed = mat.transpose();
 	index = 0;
 	for (Index j = 0; j < transposed.cols(); ++j)
@@ -305,12 +325,13 @@ TEST_CASE("MatrixMultiplication") {
 	Matrix<float, 3, 4> mat1;
 	Matrix<float, 4, 8> mat2;
 	float index = 0;
-	for (auto& c : mat1) c = index++;
-	for (auto& c : mat2) c = index++;
-	float numbers[] = { 178, 546,914 };
-	float differences[] = { 6,22,38 };
+	for (auto& c : mat1)
+		c = index++;
+	for (auto& c : mat2)
+		c = index++;
+	float numbers[] = { 178, 546, 914 };
+	float differences[] = { 6, 22, 38 };
 	auto product = mat1 * mat2;
-	//std::cout << mat1 << mat2 << product;
 	for (Index i = 0; i < product.rows(); ++i) {
 		for (const auto& c : product.row(i))
 			REQUIRE((numbers[i] += differences[i]) == c);
@@ -370,22 +391,22 @@ TEST_CASE("VectorNorm") {
 	Vector<float, 4> vec(3);
 	REQUIRE(vec.norm() == Approx(6.f));
 
-	Vector<float, 8> vec2{ 1,2,3,4,5,6,10 };
+	Vector<float, 8> vec2{ 1, 2, 3, 4, 5, 6, 10 };
 	REQUIRE(vec2.normalize().norm() == Approx(1.0f));
 }
 
 TEST_CASE("VectorInnerProduct") {
-	Vector<float, 3> vec1{ 2,3,-5 };
-	Vector<float, 3> vec2{ -34,2,99 };
+	Vector<float, 3> vec1{ 2, 3, -5 };
+	Vector<float, 3> vec2{ -34, 2, 99 };
 	REQUIRE(-557.f == vec1 * vec2);
 }
 
 TEST_CASE("VectorDistance") {
-	Vector<float, 3> vec1{ 0,0,0 };
-	Vector<float, 3> vec2{ 2,2,2 };
+	Vector<float, 3> vec1{ 0, 0, 0 };
+	Vector<float, 3> vec2{ 2, 2, 2 };
 	REQUIRE(distance(vec1, vec2) == Approx(std::sqrtf(12.f)));
-	RowVector<float, 3> rvec1{ 0,0,0 };
-	RowVector<float, 3> rvec2{ 2,2,2 };
+	RowVector<float, 3> rvec1{ 0, 0, 0 };
+	RowVector<float, 3> rvec2{ 2, 2, 2 };
 	REQUIRE(distance(rvec1, rvec2) == Approx(std::sqrtf(12.f)));
 }
 
@@ -398,7 +419,8 @@ TEST_CASE("Matrix1x1CastToT") {
 TEST_CASE("MatrixFill") {
 	Matrix<float, 4, 2> mat(1);
 	mat.fill(2.f);
-	for (const auto& c : mat) REQUIRE(c == 2.f);
+	for (const auto& c : mat)
+		REQUIRE(c == 2.f);
 }
 
 TEST_CASE("MatrixSwap") {
@@ -406,47 +428,62 @@ TEST_CASE("MatrixSwap") {
 	Matrix<float, 4, 2> mat2(3);
 	mat1.swap(mat2);
 	std::swap(mat1, mat2);
-	for (const auto& c : mat1) REQUIRE(c == 1.f);
-	for (const auto& c : mat2) REQUIRE(c == 3.f);
+	for (const auto& c : mat1)
+		REQUIRE(c == 1.f);
+	for (const auto& c : mat2)
+		REQUIRE(c == 3.f);
 }
 
 TEST_CASE("CastValueTypeToT") {
 	Matrix<double, 4, 4> mat(2.2);
 	auto mat_int = mat.cast<int>();
 	auto mat_bool = mat.cast<bool>();
-	for (const auto& c : mat_int) REQUIRE(c == 2);
-	for (const auto& c : mat_bool) REQUIRE(c == true);
+	for (const auto& c : mat_int)
+		REQUIRE(c == 2);
+	for (const auto& c : mat_bool)
+		REQUIRE(c == true);
 }
 
 TEST_CASE("MatrixBlockIterator") {
-	Matrix<float, 4, 4> mat{ 11,12,13,14,21,22,23,24,31,32,33,34,41,42,43,44 };
-	std::array<float, 6> expected{ 22,23,32,33,42,43 };
+	Matrix<float, 4, 4> mat{ 11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34, 41, 42, 43, 44 };
+	std::array<float, 6> expected{ 22, 23, 32, 33, 42, 43 };
 	int index = 0;
-	for (auto& c : mat.block(1, 1, 3, 3)) c++;
-	for (const auto& c : mat.block(1, 1, 3, 2)) REQUIRE(expected[index++] + 1 == c);
+	for (auto& c : mat.block(1, 1, 3, 3))
+		c++;
+	for (const auto& c : mat.block(1, 1, 3, 2)) {
+		REQUIRE(expected[index] + 1 == c);
+		index++;
+	}
 
 	auto block = mat.block(1, 1, 3, 2);
-	for (auto it = block.rbegin(); it != block.rend(); it++) (*it)--;
-	index = 6;
 	for (auto it = block.rbegin(); it != block.rend(); it++)
-		REQUIRE(expected[--index] == *it);
+		(*it)--;
+	index = 6;
+	for (auto it = block.rbegin(); it != block.rend(); it++) {
+		--index;
+		REQUIRE(expected[index] == *it);
+	}
 }
 
 TEST_CASE("MatrixRow") {
-	Matrix<float, 4, 4> mat{ 11,12,13,14,21,22,23,24,31,32,33,34,41,42,43,44 };
+	Matrix<float, 4, 4> mat{ 11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34, 41, 42, 43, 44 };
 	for (size_t i = 0; i < mat.rows(); i++) {
-		for (auto& c : mat.row(i)) c--;
+		for (auto& c : mat.row(i))
+			c--;
 		int index = 0;
-		for (const auto& c : mat.row(i)) REQUIRE((i + 1) * 10.f + (index++) == c);
+		for (const auto& c : mat.row(i))
+			REQUIRE((i + 1) * 10.f + (index++) == c);
 	}
 }
 
 TEST_CASE("MatrixCol") {
-	Matrix<float, 4, 4> mat{ 11,12,13,14,21,22,23,24,31,32,33,34,41,42,43,44 };
+	Matrix<float, 4, 4> mat{ 11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34, 41, 42, 43, 44 };
 	for (size_t i = 0; i < mat.cols(); i++) {
-		for (auto& c : mat.col(i)) c--;
+		for (auto& c : mat.col(i))
+			c--;
 		int index = 0;
-		for (const auto& c : mat.col(i)) REQUIRE(i + 10.f * (++index) == c);
+		for (const auto& c : mat.col(i))
+			REQUIRE(i + 10.f * (++index) == c);
 	}
 }
 
@@ -458,16 +495,16 @@ TEST_CASE("MatrixView") {
 	std::cout << mat1 << "\n";
 	for (size_t i = 0; i < mat1.rows(); ++i) {
 		for (size_t j = 0; j < mat1.cols(); ++j) {
-			REQUIRE(mat1(i, j) == ((i > 0 && i < 3 && j>1 && j < 5) ? 3.f : 1.f));
+			REQUIRE(mat1(i, j) == ((i > 0 && i < 3 && j > 1 && j < 5) ? 3.f : 1.f));
 		}
 	}
 	float index = 0;
-	for (auto& c : mat1) c = index++;
+	for (auto& c : mat1)
+		c = index++;
 	index = 0;
-	for (auto& c : mat2) c = index--;
+	for (auto& c : mat2)
+		c = index--;
 
-	//std::cout << mat1 << "\n";
-	//std::cout << mat2 << "\n";
 
 	mat1.block(0, 2, 2, 3) = mat2.block(1, 1, 2, 3);
 	mat2.row(3) = mat2.row(2);
@@ -475,15 +512,14 @@ TEST_CASE("MatrixView") {
 
 	std::cout << mat1 << "\n";
 	std::cout << mat2 << "\n";
-	//for (const auto& c : mat1) REQUIRE(c, 3.f);
-	//for (const auto& c : mat2) REQUIRE(c, 1.f);
 }
 
 TEST_CASE("CopyBlockToMatrix") {
 	Matrix<float, 6, 7> mat1(1);
 	Matrix<float, 4, 4> mat2(3);
 	mat2 = mat1.block(0, 0, 4, 4);
-	for (const auto& c : mat2) REQUIRE(c == 1.f);
+	for (const auto& c : mat2)
+		REQUIRE(c == 1.f);
 	bool exceptionHappened{ false };
 	try {
 		mat2 = mat1.block(0, 0, 4, 3);
@@ -498,7 +534,8 @@ TEST_CASE("CopyMatrixToBlock") {
 	Matrix<float, 6, 7> mat(1);
 	mat.block(1, 0, 4, 4) = Matrix<float, 4, 4>::zero();
 
-	for (const auto& c : mat.block(1, 0, 4, 4)) REQUIRE(0.f == c);
+	for (const auto& c : mat.block(1, 0, 4, 4))
+		REQUIRE(0.f == c);
 	bool exceptionHappened{ false };
 	try {
 		mat.block(1, 0, 4, 4) = Matrix<float, 3, 3>::zero();
@@ -510,42 +547,10 @@ TEST_CASE("CopyMatrixToBlock") {
 }
 
 TEST_CASE("HadamardProduct") {
-	Matrix<int, 2, 3> mat1{ 1,2,3,4,5,6 };
-	Matrix<int, 2, 3> mat2{ 23,-3,4,55,622,73 };
+	Matrix<int, 2, 3> mat1{ 1, 2, 3, 4, 5, 6 };
+	Matrix<int, 2, 3> mat2{ 23, -3, 4, 55, 622, 73 };
 	auto prod = hadamard(mat1, mat2);
 	for (auto it1 = mat1.begin(), it2 = mat2.begin(), it3 = prod.begin(); it1 != mat1.end(); ++it1, ++it2, ++it3) {
 		REQUIRE((*it1) * (*it2) == *it3);
 	}
 }
-
-TEST_CASE("Determinant") {
-	Matrix<float, 2, 2> mat2{ 1,2,3,4 };
-	REQUIRE(-2.f == det(mat2));
-
-	mat2 = { 1,2,4,5 };
-	REQUIRE(-3.f == det(mat2));
-
-	Matrix<float, 3, 3> mat3{ 1,2,3,4,5,6,7,8,9 };
-	REQUIRE(0.f == det(mat3));
-
-	mat3 = { 4,8,5,4,3,6,5,1,1 };
-	REQUIRE(141.f == det(mat3));
-
-	mat3 = { -8,4.1f,-98,2,8,6.4f,1,7.2f,4 };
-	REQUIRE(-13028.f / 25.f == det(mat3));
-}
-
-TEST_CASE("Invert") {
-	Matrix<double, 2, 2> mat2{ 1,2,3,4 };
-	for (double el : mat2 * inv(mat2) - Matrix<double, 2, 2>::identity()) REQUIRE(el == Approx(0.).margin(1e-15));
-
-	mat2 = { -4.55,3.44,-9.333,-234 };
-	for (double el : mat2 * inv(mat2) - Matrix<double, 2, 2>::identity()) REQUIRE(el == Approx(0.).margin(1e-15));
-
-	Matrix<double, 3, 3> mat3{ 1,2,3,4,5,6,7,8,10 };
-	for (double el : mat3 * inv(mat3) - Matrix<double, 3, 3>::identity()) REQUIRE(el == Approx(0.).margin(1e-15));
-
-	mat3 = { 1,2,3,4,55,6,7,8,10 };
-	for (double el : mat3 * inv(mat3) - Matrix<double, 3, 3>::identity()) REQUIRE(el == Approx(0.).margin(1e-15));
-}
-

@@ -18,6 +18,7 @@
 #endif
 
 namespace algebra {
+
 using Index = size_t;
 
 // concepts for identifying dimension combinations as vector dimensions (of special size)
@@ -72,6 +73,7 @@ public:
 	constexpr std::strong_ordering operator<=>(const Matrix_iterator& right) const noexcept { return ptr <=> right.ptr; }
 	constexpr friend bool operator==(const Matrix_iterator& a, const Matrix_iterator& b) noexcept { return a.ptr == b.ptr; }
 	constexpr friend bool operator!=(const Matrix_iterator& a, const Matrix_iterator& b) noexcept { return a.ptr != b.ptr; }
+	constexpr friend Matrix_iterator operator+(const difference_type offset, const Matrix_iterator a) noexcept { return a += offset; }
 
 private:
 	pointer ptr;
@@ -107,10 +109,11 @@ public:
 	constexpr std::strong_ordering operator<=>(const Matrix_stride_iterator& right) const noexcept { return ptr <=> right.ptr; }
 	constexpr friend bool operator==(const Matrix_stride_iterator& a, const Matrix_stride_iterator& b) noexcept { return a.ptr == b.ptr; }
 	constexpr friend bool operator!=(const Matrix_stride_iterator& a, const Matrix_stride_iterator& b) noexcept { return a.ptr != b.ptr; }
+	constexpr friend Matrix_stride_iterator operator+(const difference_type offset, const Matrix_stride_iterator a) noexcept { return a += offset; }
 
 private:
 	pointer ptr;
-	const size_type stride;
+	size_type stride;
 };
 
 
@@ -127,8 +130,7 @@ public:
 
 	constexpr Matrix_block_iterator() noexcept : ptr(), row_length(1), jump(1), row_index(0) {};
 	constexpr explicit Matrix_block_iterator(pointer ptr, size_type row_length = 1, size_type jump = 1, size_type row_index = 0) noexcept
-		: ptr(ptr), row_length(row_length), jump(jump), row_index(row_index) {
-	}
+		: ptr(ptr), row_length(row_length), jump(jump), row_index(row_index) {}
 
 	constexpr reference operator*() const noexcept { return *ptr; }
 	constexpr pointer operator->() const noexcept { return ptr; }
@@ -469,7 +471,7 @@ template<class T, Index n> using RowVector = Matrix<T, 1, n>;
 
 
 template<class T, Index m, Index n>
-bool operator==(const Matrix<T, m, n>& a, const Matrix<T, m, n>& b) {
+constexpr bool operator==(const Matrix<T, m, n>& a, const Matrix<T, m, n>& b) {
 	for (Index i = 0; i < a.size(); ++i)
 		if (a.data()[i] != b.data()[i]) return false;
 	return true;

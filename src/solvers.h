@@ -1,11 +1,11 @@
 #pragma once
 
-// Compute determinant and inverse of 2x2 as well as 3x3 matrices. 
+// Compute determinant and inverse of 2x2 as well as 3x3 matrices.
 
 #include "matrix.h"
 
 
-namespace algebra{
+namespace algebra {
 
 template<class T, Index n>
 T det(const Matrix<T, n, n>& a);
@@ -40,9 +40,10 @@ Matrix<T, 3, 3> inv(const Matrix<T, 3, 3>& a) {
 	T dhge = data[3] * data[7] - data[6] * data[4];
 	T det = data[0] * eihf + data[1] * fgdi + data[2] * dhge;
 	Matrix<T, 3, 3> result{
-		eihf,data[2] * data[7] - data[1] * data[8],data[1] * data[5] - data[2] * data[4],
-		fgdi,data[0] * data[8] - data[2] * data[6],data[3] * data[2] - data[0] * data[5],
-		dhge,data[6] * data[1] - data[0] * data[7],data[0] * data[4] - data[3] * data[1] };
+		eihf, data[2] * data[7] - data[1] * data[8], data[1] * data[5] - data[2] * data[4],
+		fgdi, data[0] * data[8] - data[2] * data[6], data[3] * data[2] - data[0] * data[5],
+		dhge, data[6] * data[1] - data[0] * data[7], data[0] * data[4] - data[3] * data[1]
+	};
 	return result *= T(1.0) / det;
 }
 
