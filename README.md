@@ -1,5 +1,8 @@
 # Matrix for C++
 
+[![tests](https://github.com/Mc-Zen/Matrix/actions/workflows/ci.yml/badge.svg)](https://github.com/Mc-Zen/Matrix/actions/workflows/ci.yml)
+[![license](https://img.shields.io/badge/license-MIT-blue)](https://github.com/Mc-Zen/Matrix/blob/main/LICENSE)
+
 
 A tiny C++20 general-purpose library for dense, fixed-size and dynamically-sized matrices with no dependencies (other than `std`).
 It makes use of C++20s concepts to enable special features such as norm for vectors and many more.
