@@ -1,7 +1,7 @@
 # Matrix for C++
 
 
-A tiny C++20 general-purpose library for dense, fixed-size matrices (and vectors) with no dependencies.
+A tiny C++20 general-purpose library for dense, fixed-size and dynamically-sized matrices with no dependencies (other than `std`).
 It makes use of C++20s concepts to enable special features such as norm for vectors and many more.
 
 __View the full documentation at [https://mc-zen.github.io/Matrix/](https://mc-zen.github.io/Matrix/)__
@@ -12,19 +12,28 @@ __View the full documentation at [https://mc-zen.github.io/Matrix/](https://mc-z
 Features:
 
 - intuitive syntax
-- almost no overhead
-- header-only
-- almost single-header
-- fully constexpr
+- low-overhead
+- header-only and single-header
+- fully constexpr (except where math functions like `sqrt` are used). 
 - STL-oriented
 - static memory (e.g. suited for audio development)
-- simple software design in compaison to some other matrix libs, e.g. no CRTP, virtual functions, ...
+- simple software design in comparison to some other matrix libs, e.g. no CRTP, virtual functions, ...
 - fully tested. Tests can be run with [Catch2](https://github.com/catchorg/Catch2).
 
 Limitations:
 
 - only C++20 (and up) because of heavy use of concepts and constexpr
 - this is not a linear algebra library - at the moment the library provides no linear algebra algorithms such as decomposition and solvers (exception: determinant and inverse of 2&times;2 and 3&times;3 matrices).
+
+## Supported Platforms
+Since this repository uses C++20 language features, a fairly new C++ compiler is necessary. 
+
+|Platform | Compiler   | Minimum version |
+|---------|------------|-----------------|
+|Windows  | MSVC       | 14.30           |
+|Linux    | GCC        | 13              |
+|         | Clang      | 15              |
+|MacOS    | AppleClang | 15              |
 
 
 ## Classes

@@ -81,7 +81,13 @@ RowVector3f row_vec(7);
 float scalar = row_vec * vec; 
 
 // Pretty print matrices
-cout << mat << mat2 << vec;</pre></code>
+cout << mat << mat2 << vec;
+
+// Dynamic matrices
+Matrix&lt;float, dynamic, dynamic&gt; dyn_mat{ 3, 4 };
+</pre></code>
+
+
         </p>
 
         <h2>Documentation</h2>
@@ -133,6 +139,7 @@ cout << mat << mat2 << vec;</pre></code>
             <div><code class="language-cpp">class Matrix_iterator&lt;T&gt;</code> </div><div>Random access iterator (in fact even contiguous iterator) for iterating through a contiguous array in memory (matrix data).</div>
             <div><code class="language-cpp">class Matrix_stride_iterator&lt;T&gt;</code> </div><div>Random access iterator for iterating i.e. vertically through a contiguous array in memory.  </div>
             <div><code class="language-cpp">class Matrix_block_iterator&lt;T&gt;</code> </div><div>Bi-directional iterator for iterating through a matrix block within a bigger matrix.</div>
+            <div><code class="language-cpp">struct Shape&lt;bool&gt;</code> </div><div>Shape representation. For fixed-sized matrices, it takes up no space. </div>
         </div>
 
         <h3 id="typedefs">Type Definitions</h3>
@@ -193,6 +200,7 @@ cout << mat << mat2 << vec;</pre></code>
 
             <div><code class="language-cpp">struct Matrix_view_mismatch</code> </div><div>Thrown when assignment (copy of data) from one <code class="language-cpp">Matrix_view</code> into another is attempted with different block dimensions.</div>
             <div><code class="language-cpp">struct Matrix_block_domain_error</code> </div><div>Thrown when creation of a block is attempted that exceeds the dimensions of the matrix.</div>
+            <div><code class="language-cpp">struct Matrix_shape_error</code> </div><div>Thrown when attempting to perform operations on two matrices with invalid dimensions. </div>
         </div>
 
 
@@ -229,7 +237,7 @@ cout << mat << mat2 << vec;</pre></code>
 
 
 
-            <h4 id="matrix:constructors">Constructors</h4>
+            <h4 id="matrix:constructors">Constructors (fixed-size)</h4>
             <div class="tab">
                 <div>Member</div><div>Definition</div>
 
@@ -238,6 +246,19 @@ cout << mat << mat2 << vec;</pre></code>
                 <div><code class="language-cpp">Matrix(const std::initializer_list&lt;T&gt; elems)</code></div><div>Initializes matrix elements from initializer list. When too many values are provided, the last ones are discarded; when too few are provided, the rest is default-initialized. </div>
                 <div><code class="language-cpp">Matrix(const std::array&lt;T, m*n&gt;&amp; elems)</code></div><div>Copies values from a <code class="language-cpp">std::array</code> with fitting length.</div>
                 <div><code class="language-cpp">Matrix(std::array&lt;T, m*n&gt;&amp;&amp; elems)</code></div><div>Constructs a matrix by moving <code class="language-cpp">std::array</code> with fitting length.</div>
+                <div><code class="language-cpp">Matrix(const Matrix_view&lt;T&gt;&amp; mat_view)</code></div><div>Constructs a matrix copying the matrix block <code class="language-cpp">mat_view</code>.</div>
+            </div>
+
+
+            <h4 id="matrix:constructors">Constructors (dynamically-sized)</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">Matrix(Index m, Index n)</code></div><div>Default-initializes data (i.e. zero for arithmetic types). </div>
+                <div><code class="language-cpp">Matrix(Index m, Index n, const T&amp; value)</code></div><div>Initializes all entries to <code class="language-cpp">value</code>. </div>
+                <div><code class="language-cpp">Matrix(Index m, Index n, const std::initializer_list&lt;T&gt; elems)</code></div><div>Initializes matrix elements from initializer list. When too many values are provided, the last ones are discarded; when too few are provided, the rest is default-initialized. </div>
+                <div><code class="language-cpp">Matrix(Index m, Index n, const std::vector&lt;T&gt;&amp; elems)</code></div><div>Copies values from a <code class="language-cpp">std::vector</code> with fitting length.</div>
+                <div><code class="language-cpp">Matrix(Index m, Index n, std::vector&lt;T&gt;&amp;&amp; elems)</code></div><div>Constructs a matrix by moving <code class="language-cpp">std::vector</code> with fitting length.</div>
                 <div><code class="language-cpp">Matrix(const Matrix_view&lt;T&gt;&amp; mat_view)</code></div><div>Constructs a matrix copying the matrix block <code class="language-cpp">mat_view</code>.</div>
             </div>
 
@@ -277,6 +298,18 @@ cout << mat << mat2 << vec;</pre></code>
                 <div><code class="language-cpp">Matrix&amp; operator+=(const Matrix&amp; a)</code><br /><code class="language-cpp">Matrix operator+(const Matrix&amp; a) const</code></div><div> Adds another matrix. </div>
                 <div><code class="language-cpp">Matrix&amp; operator-=(const Matrix&amp; a)</code><br /><code class="language-cpp">Matrix operator-(const Matrix&amp; a) const</code></div><div> Subtracts another matrix.  </div>
             </div>
+
+            <h4 id="matrix:resize">Resize and reshape (only for dynamically-sized matrices)</h4>
+            <div class="tab">
+                <div>Member</div><div>Definition</div>
+
+                <div><code class="language-cpp">void resize(Index m, Index n)</code></div><div> Resizes the matrix to the new given dimensions. Elements of the matrix can move position since this function effectively calls <code class="language-cpp">resize()</code> on the vector storing the matrix' elements. </div>
+                <div><code class="language-cpp">void reshape(Index m, Index n)</code></div><div> Reshapes the matrix. Only possible when the total number of elements do not change. </div>
+                <div><code class="language-cpp">void reshape(Shape new_shape)</code></div><div> Reshapes the matrix. Only possible when the total number of elements do not change. </div>
+                <div><code class="language-cpp">Shape shape() const</code></div><div> Returns the shape of the matrix. </div>
+            </div>
+
+
 
 
 
@@ -346,8 +379,9 @@ cout << mat << mat2 << vec;</pre></code>
                 <div>Static Member</div><div>Definition</div>
 
                 <div><code class="language-cpp">static Matrix zero()</code></div><div>Returns a matrix filled with zeros. </div>
+                <div><code class="language-cpp">static Matrix zero(Index m, Index n)</code></div><div>(dynamic version). Returns a matrix filled with zeros. </div>
                 <div><code class="language-cpp">static Matrix identity()</code></div><div>Returns an identity matrix (operation only defined for square matrices). </div>
-                <div><code class="language-cpp">static Matrix uninitialized()</code></div><div>Returns a matrix with indeterminate values (no setting to zero). </div>
+                <div><code class="language-cpp">static Matrix identity(Index n)</code></div><div>(dynamic version). Returns an identity matrix (operation only defined for square matrices). </div>
             </div>
         </div>
         <br />
