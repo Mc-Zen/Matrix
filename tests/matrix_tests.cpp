@@ -1,22 +1,23 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
+
+#define MATRIX_EXCEPTIONS
 #include "../src/matrix.h"
 
 #include <iostream>
-
 
 using Catch::Approx;
 using namespace algebra;
 
 
 template<std::random_access_iterator It>
-void checkRandomAccessIterator(It it) {
+void checkRandomAccessIterator(It) {
 }
 
 
 template<std::bidirectional_iterator It>
-void checkBirectionalIterator(It it) {
+void checkBirectionalIterator(It) {
 }
 
 template<class T, Index m, Index n>
@@ -27,6 +28,186 @@ void testSizeImpl() {
 	REQUIRE(n * m == mat.size());
 }
 
+
+TEST_CASE("Dynamic Constructor with deduction guide") {
+	Matrix mat{ 1,2,{4,5,6} };
+	static_assert(std::same_as<decltype(mat)::value_type, int>);
+	REQUIRE(mat(0, 0) == 4);
+}
+TEST_CASE("Dynamic Constructor") {
+	SECTION("Dimensions") {
+		Matrix<int> mat{ Shape<false>{3,2} };
+		REQUIRE(mat.rows() == 3);
+		REQUIRE(mat.cols() == 2);
+	}
+
+	SECTION("m,n") {
+		Matrix<int> mat{ 3,2 };
+		REQUIRE(mat.rows() == 3);
+		REQUIRE(mat.cols() == 2);
+	}
+
+
+	SECTION("Value") {
+		Matrix<int> mat{ 3,2,4 };
+		REQUIRE(mat.rows() == 3);
+		REQUIRE(mat.cols() == 2);
+		REQUIRE(mat(0, 0) == 4);
+	}
+
+
+	SECTION("Initializer list") {
+		Matrix<int> mat{ 3,2, {3,4,5,6} };
+		REQUIRE(mat.rows() == 3);
+		REQUIRE(mat.cols() == 2);
+		REQUIRE(mat(0, 0) == 3);
+		REQUIRE(mat(0, 1) == 4);
+		REQUIRE(mat(1, 0) == 5);
+		REQUIRE(mat(1, 1) == 6);
+		REQUIRE(mat(2, 0) == 0);
+		REQUIRE(mat(2, 1) == 0);
+	}
+
+
+	SECTION("vector copy") {
+		std::vector<int> data{ 3, 4, 5, 6 };
+		Matrix<int> mat{ 3,2, data };
+		REQUIRE(mat.rows() == 3);
+		REQUIRE(mat.cols() == 2);
+		REQUIRE(mat(0, 0) == 3);
+		REQUIRE(mat(0, 1) == 4);
+		REQUIRE(mat(1, 0) == 5);
+		REQUIRE(mat(1, 1) == 6);
+		REQUIRE(mat(2, 0) == 0);
+		REQUIRE(mat(2, 1) == 0);
+	}
+
+	SECTION("vector move") {
+		std::vector<int> data{ 3, 4, 5, 6 };
+		Matrix<int> mat{ 3,2,  std::move(data) };
+		REQUIRE(mat.rows() == 3);
+		REQUIRE(mat.cols() == 2);
+		REQUIRE(mat(0, 0) == 3);
+		REQUIRE(mat(0, 1) == 4);
+		REQUIRE(mat(1, 0) == 5);
+		REQUIRE(mat(1, 1) == 6);
+		REQUIRE(mat(2, 0) == 0);
+		REQUIRE(mat(2, 1) == 0);
+	}
+
+
+	SECTION("From Matrix view") {
+		Matrix<int> mat{ 4,5,2 };
+		Matrix mat2 = mat.row(2);
+		REQUIRE(mat2.rows() == 1);
+		REQUIRE(mat2.cols() == 5);
+		REQUIRE(mat(0, 0) == 2);
+		REQUIRE(mat(0, 1) == 2);
+		REQUIRE(mat(0, 2) == 2);
+		REQUIRE(mat(0, 3) == 2);
+		REQUIRE(mat(0, 4) == 2);
+	}
+
+}
+
+
+TEST_CASE("Dynamic arithmetic") {
+	Matrix<int> a{ 2,3 };
+	Matrix<int> b{ 2,3 };
+	a + b;
+	b.resize(2, 4);
+
+	bool exceptionHappened{ false };
+	try {
+		a + b;
+	}
+	catch (Matrix_shape_error&) {
+		exceptionHappened = true;
+	}
+	REQUIRE(exceptionHappened);
+
+	b.resize(3, 5);
+	a = a * b;
+	exceptionHappened = false;
+	try {
+		a* b;
+	}
+	catch (Matrix_shape_error&) {
+		exceptionHappened = true;
+	}
+	REQUIRE(exceptionHappened);
+}
+
+
+TEST_CASE("Dynamic transpose") {
+	Matrix<int> a{ 2,3 };
+	a = a.transpose();
+	REQUIRE(a.rows() == 3);
+	REQUIRE(a.cols() == 2);
+}
+
+TEST_CASE("Dynamic dot product") {
+	Matrix<int> a{ 2,1, {3,4} };
+	Matrix<int> b{ 2,1, {6,7} };
+	REQUIRE(a.dot(b) == 18 + 28);
+	b.resize(2, 2);
+	bool exceptionHappened{ false };
+	try {
+		a.dot(b);
+	}
+	catch (Matrix_shape_error&) {
+		exceptionHappened = true;
+	}
+	REQUIRE(exceptionHappened);
+}
+
+
+TEST_CASE("Dynamic diag") {
+	SECTION("Vector") {
+		Matrix vec(4, 1, { 3,4,2,1 });
+		auto mat = diag(vec);
+		REQUIRE(mat.rows() == 4);
+		REQUIRE(mat.cols() == 4);
+		REQUIRE(mat(0, 0) == 3);
+		REQUIRE(mat(1, 1) == 4);
+		REQUIRE(mat(2, 2) == 2);
+		REQUIRE(mat(3, 3) == 1);
+	}
+
+	SECTION("Initializer list") {
+		auto mat = diag({ 3,4,2,1 });
+		REQUIRE(mat.rows() == 4);
+		REQUIRE(mat.cols() == 4);
+		REQUIRE(mat(0, 0) == 3);
+		REQUIRE(mat(1, 1) == 4);
+		REQUIRE(mat(2, 2) == 2);
+		REQUIRE(mat(3, 3) == 1);
+	}
+}
+
+
+TEST_CASE("Dynamic antidiag") {
+	SECTION("Vector") {
+		Matrix vec(4, 1, { 3,4,2,1 });
+		auto mat = antidiag(vec);
+		REQUIRE(mat.rows() == 4);
+		REQUIRE(mat.cols() == 4);
+		REQUIRE(mat(3, 0) == 3);
+		REQUIRE(mat(2, 1) == 4);
+		REQUIRE(mat(1, 2) == 2);
+		REQUIRE(mat(0, 3) == 1);
+	}
+
+	SECTION("Initializer list") {
+		auto mat = antidiag({ 3,4,2,1 });
+		REQUIRE(mat.rows() == 4);
+		REQUIRE(mat.cols() == 4);
+		REQUIRE(mat(3, 0) == 3);
+		REQUIRE(mat(2, 1) == 4);
+		REQUIRE(mat(1, 2) == 2);
+		REQUIRE(mat(0, 3) == 1);
+	}
+}
 
 TEST_CASE("Random Acess iterator concept") {
 	Matrix<float, 4, 3> mat;
@@ -135,7 +316,7 @@ TEST_CASE("ArrayCopyConstructor") {
 
 TEST_CASE("ArrayMoveConstructor") {
 	std::array<float, 12> arr{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-	Matrix<float, 4, 3> mat = std::move(arr);
+	Matrix<float, 4, 3> mat{ std::move(arr) };
 	float count = 0;
 	for (const auto& el : mat) {
 		REQUIRE(el == count++);
@@ -155,16 +336,10 @@ TEST_CASE("MatrixViewConstructor") {
 	try {
 		Vector<float, 3> vec1{ mat.col(1) };
 	}
-	catch (std::exception&) {
+	catch (Matrix_block_domain_error&) {
 		exceptionHappened = true;
 	}
 	REQUIRE(exceptionHappened);
-}
-
-TEST_CASE("UninitializedConstructor") {
-	auto mat = Matrix<float, 5, 6>::unspecified();
-	for (const auto& c : mat)
-		REQUIRE((c == 0.f) == false);
 }
 
 TEST_CASE("IdentityMatrixFactory") {
@@ -182,7 +357,7 @@ TEST_CASE("ZeroMatrixFactory") {
 }
 
 TEST_CASE("DiagMatrixFactory") {
-	auto mat = diag({ 9., 10., 11. });
+	auto mat = diag<double, 3>({ 9., 10., 11. });
 	double num = 9.;
 	for (Index i = 0; i < mat.rows(); i++)
 		for (Index j = 0; j < mat.rows(); j++)
@@ -225,7 +400,7 @@ TEST_CASE("AtAccessOperatorBoundsException") {
 	try {
 		mat.at(3, 12);
 	}
-	catch (std::exception) {
+	catch (std::out_of_range&) {
 		exceptionHappened = true;
 	}
 	REQUIRE(exceptionHappened == true);
@@ -404,10 +579,10 @@ TEST_CASE("VectorInnerProduct") {
 TEST_CASE("VectorDistance") {
 	Vector<float, 3> vec1{ 0, 0, 0 };
 	Vector<float, 3> vec2{ 2, 2, 2 };
-	REQUIRE(distance(vec1, vec2) == Approx(std::sqrtf(12.f)));
+	REQUIRE(distance(vec1, vec2) == Approx(std::sqrt(12.f)));
 	RowVector<float, 3> rvec1{ 0, 0, 0 };
 	RowVector<float, 3> rvec2{ 2, 2, 2 };
-	REQUIRE(distance(rvec1, rvec2) == Approx(std::sqrtf(12.f)));
+	REQUIRE(distance(rvec1, rvec2) == Approx(std::sqrt(12.f)));
 }
 
 TEST_CASE("Matrix1x1CastToT") {
