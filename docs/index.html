@@ -24,20 +24,20 @@
             Matrix library for C++20
         </h1>
         <p>
-            A tiny C++20 general-purpose library for dense, fixed-size matrices (and vectors) with no dependencies.
+            A tiny C++20 general-purpose library for dense, fixed-size and dynamically-sized matrices with no dependencies.
         </p>
         <h2>Overview</h2>
         <p>
             Features:
             <ul>
-                <li>intuitive and simple syntax</li>
-                <li>almost no overhead</li>
-                <li>header-only</li>
-                <li>(almost) single-header</li>
-                <li>fully constexpr</li>
+                <li>intuitive syntax</li>
+                <li>low-overhead</li>
+                <li>header-only and single-header</li>
+                <li>fully constexpr (except where math functions like `sqrt` are used). </li>
                 <li>STL-oriented</li>
-                <li>static memory (e.g. suited for audio development)</li>
-                <li>simple software design in compaison to some other matrix libs, e.g. no CRTP, virtual functions, ...</li>
+                <li>Statically-sized have static memory (e.g. suited for audio development). </li>
+                <li>Dynamically-sized matrices are now available as well. </li>
+                <li>simple software design in comparison to some other matrix libs, e.g. no CRTP, virtual functions, ...</li>
                 <li>fully tested. Tests can be run with <a href="https://github.com/catchorg/Catch2">Catch2</a>.</li>
             </ul>
         </p>

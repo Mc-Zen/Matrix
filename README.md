@@ -16,7 +16,8 @@ Features:
 - header-only and single-header
 - fully constexpr (except where math functions like `sqrt` are used). 
 - STL-oriented
-- static memory (e.g. suited for audio development)
+- Statically-sized have static memory (e.g. suited for audio development). 
+- Dynamically-sized matrices are now available as well. 
 - simple software design in comparison to some other matrix libs, e.g. no CRTP, virtual functions, ...
 - fully tested. Tests can be run with [Catch2](https://github.com/catchorg/Catch2).
 
