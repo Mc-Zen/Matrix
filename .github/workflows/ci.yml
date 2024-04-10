@@ -1,0 +1,86 @@
+name: tests
+
+on:
+  push:
+    branches: [ "main", "ci" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  tests:
+    name: Tests
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: gcc-13
+            cpp_compiler: g++-13
+          - os: ubuntu-latest
+            c_compiler: clang-15
+            cpp_compiler: clang++-15
+          - os: macos-latest
+            c_compiler: $(brew --prefix llvm@15)/bin/clang
+            cpp_compiler: $(brew --prefix llvm@15)/bin/clang++
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/tests/build" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Catch2
+      id: cache-catch2
+      uses: actions/cache@v3
+      with:
+        key: catch2-${{ matrix.os }}-${{ matrix.cpp_compiler }}
+        path: Catch2
+
+          
+    - if: ${{ steps.cache-catch2.outputs.cache-hit != 'true' }}
+      name: Download and build Catch2
+      continue-on-error: true
+      run:  |
+        git clone https://github.com/catchorg/Catch2.git
+        cd Catch2
+        cmake -B build -S . -DBUILD_TESTING=OFF
+        cmake --build build/
+        
+
+    - name: Install Catch2 (Windows)
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        cd Catch2
+        cmake --install build/ --config Debug
+    - name: Install Catch2 (!Windows) 
+      if: ${{ matrix.os != 'windows-latest' }}
+      run: |
+        cd Catch2
+        sudo cmake --install build/
+        
+
+    - name: Configure CMake
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=Debug
+        -DUNIT_TESTING=ON
+        -S ${{ github.workspace }}/tests
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Debug
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: ctest -C Debug --output-on-failure --verbose
