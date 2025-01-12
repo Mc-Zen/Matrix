@@ -21,8 +21,8 @@ jobs:
             c_compiler: cl
             cpp_compiler: cl
           - os: ubuntu-latest
-            c_compiler: gcc-13
-            cpp_compiler: g++-13
+            c_compiler: gcc
+            cpp_compiler: g++
           - os: ubuntu-latest
             c_compiler: clang-15
             cpp_compiler: clang++-15
